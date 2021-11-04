@@ -80,7 +80,7 @@ public class ComedyStudiosBot extends AdvancedRobot
             count = 0;
             if(nextToBorder)
             {
-                if(standingTime > 30)
+                if(standingTime > 20)
                 {
                     standingTime = 0;
 
@@ -106,7 +106,7 @@ public class ComedyStudiosBot extends AdvancedRobot
                 var absoluteBearing = absoluteBearing(position.x, position.y, enemyPosition.x, enemyPosition.y);
                 setTurnGunRight(absoluteBearing - getGunHeading());
 
-                if(this.getEnergy() > 10 && event.getDistance() <= 400) {
+                if(this.getEnergy() > 10 && event.getDistance() <= 500) {
 
 
                     double firepower;
