@@ -135,12 +135,30 @@ public class ComedyStudiosBot extends AdvancedRobot
 
     public void onHitWall(HitWallEvent event) {
 
+        var angle = absoluteBearing(arenaSize.x/2, arenaSize.y/2, getX(), getY());
+        if(0 <= angle&& angle <= 90)
+        {
 
-            //ahead(-distance/5);
-            turnRight( 90);
-            waitFor( new TurnCompleteCondition(this));
-            ahead(-distance/2);
-            waitFor(new MoveCompleteCondition(this));
+        }
+        if(90 <= angle&& angle <= 180)
+        {
+
+        }if(180 <= angle&& angle <= 270)
+        {
+
+        }if(270 <= angle&& angle <= 360)
+        {
+
+        }
+
+
+
+
+        //ahead(-distance/5);
+        turnRight( 90);
+        waitFor( new TurnCompleteCondition(this));
+        ahead(-distance/2);
+        waitFor(new MoveCompleteCondition(this));
     }
 
 
