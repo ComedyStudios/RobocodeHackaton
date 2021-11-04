@@ -135,6 +135,8 @@ public class ComedyStudiosBot extends AdvancedRobot
 
     public void onHitWall(HitWallEvent event) {
 
+
+            //ahead(-distance/5);
             turnRight( 90);
             waitFor( new TurnCompleteCondition(this));
             ahead(-distance/2);
@@ -144,8 +146,11 @@ public class ComedyStudiosBot extends AdvancedRobot
 
     public void onHitRobot(HitRobotEvent event)
     {
+       /* var enemyposition = GetEnemyPosition(event);
+        var absolutebearing = absoluteBearing()
 
-    }
+    */}
+
 
     private double getDistanceRobotPoint(Point2D.Double target) {
         return Math.sqrt(Math.pow(target.x-getX(),2) + Math.pow(target.y-getY(),2));
