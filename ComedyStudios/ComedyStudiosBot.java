@@ -13,13 +13,11 @@ public class ComedyStudiosBot extends AdvancedRobot
     Point2D.Double arenaSize;
     boolean nextToBorder;
     double turnAng = 15;
-    String enemyName;
-    double enemyHealth = -1;
     int count;
     RobotStatus robotStatus;
-    int lastRoundWithScans;
-
+    int time;
     int standingTime;
+
     public void run()
     {
         arenaSize = new Point2D.Double(getBattleFieldWidth(), getBattleFieldWidth());
@@ -27,6 +25,7 @@ public class ComedyStudiosBot extends AdvancedRobot
         // search for a border to crawl to !DONE : search for the closest wall
         while(true)
         {
+            time ++;
             if(!nextToBorder)
             {
                 goToBorder(arenaSize);
@@ -38,13 +37,12 @@ public class ComedyStudiosBot extends AdvancedRobot
             }
             else setTurnGunRight(turnAng/10);
             count++;
+            if(time % 70 == 0)
+            {
+                goToBorder(arenaSize);
+            }
             execute();
         }
-        // position yourself paralel to the border !Done
-        // drive left and right to avoid bullets
-        // avoid pushing tanks
-        // track enemies using Saurs Code
-        // Calculate Enemy position using current enemy speed and heading
     }
 
     private void goToBorder(Point2D.Double arenaSize )
@@ -80,7 +78,7 @@ public class ComedyStudiosBot extends AdvancedRobot
             count = 0;
             if(nextToBorder)
             {
-                if(standingTime > 20)
+                if(standingTime > 10)
                 {
                     standingTime = 0;
 
@@ -96,9 +94,7 @@ public class ComedyStudiosBot extends AdvancedRobot
                     else
                         turnAng = -40;
 
-                    this.out.println(distance + " " + turnAng);
                 }
-                this.out.println("standing time"  + standingTime);
 
                 //turn gun to enemy Bot;
                 var position = new Point2D.Double(getX(), getY());
@@ -106,7 +102,7 @@ public class ComedyStudiosBot extends AdvancedRobot
                 var absoluteBearing = absoluteBearing(position.x, position.y, enemyPosition.x, enemyPosition.y);
                 setTurnGunRight(absoluteBearing - getGunHeading());
 
-                if(this.getEnergy() > 10 && event.getDistance() <= 500) {
+                if(this.getEnergy() > 10 && event.getDistance() <= 700) {
 
 
                     double firepower;
@@ -120,54 +116,42 @@ public class ComedyStudiosBot extends AdvancedRobot
                 }
                 else
                     standingTime += 10;
-                    this.out.println("no fire");
-                //shoot and avoid enemy bot;
 
-                //if bot to close drive away
-
-
-
-                // get info about enemy
-
-                //if enemy shoots avoid and shoot back;
         }
     }
 
+
     public void onHitWall(HitWallEvent event) {
+        out.println("turn");
 
-        var angle = absoluteBearing(arenaSize.x/2, arenaSize.y/2, getX(), getY());
-        if(0 <= angle&& angle <= 90)
+        if(distance > 0)
         {
-
+            back(30);
+            turnRight( -90);
+            waitFor( new TurnCompleteCondition(this));
         }
-        if(90 <= angle&& angle <= 180)
+        else
         {
-
-        }if(180 <= angle&& angle <= 270)
-        {
-
-        }if(270 <= angle&& angle <= 360)
-        {
-
+            back(-30);
+            turnRight(90);
+            waitFor( new TurnCompleteCondition(this));
         }
-
-
-
-
-        //ahead(-distance/5);
-        turnRight( 90);
-        waitFor( new TurnCompleteCondition(this));
-        ahead(-distance/2);
         waitFor(new MoveCompleteCondition(this));
+
     }
 
 
     public void onHitRobot(HitRobotEvent event)
     {
-       /* var enemyposition = GetEnemyPosition(event);
-        var absolutebearing = absoluteBearing()
+        if (event.getBearing() > -10.0D && event.getBearing() < 10.0D)
+        {
+            this.fire(3.0D);
+        }
 
-    */}
+        this.back(300);
+        waitFor(new MoveCompleteCondition(this));
+        goToBorder(arenaSize);
+    }
 
 
     private double getDistanceRobotPoint(Point2D.Double target) {
