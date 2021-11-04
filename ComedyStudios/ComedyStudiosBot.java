@@ -1,20 +1,21 @@
 package ComedyStudios;
 
-import robocode.AdvancedRobot;
-import robocode.MoveCompleteCondition;
-import robocode.ScannedRobotEvent;
-import robocode.TurnCompleteCondition;
+import robocode.*;
 
 import javax.swing.text.Position;
 import java.awt.geom.Point2D;
+
 
 public class ComedyStudiosBot extends AdvancedRobot
 {
     Point2D.Double arenaSize;
     boolean nextToBorder;
-    double turnAng = 30;
+    double turnAng = 15;
     String enemyName;
     double enemyHealth;
+    int count;
+    RobotStatus robotStatus;
+    int lastRoundWithScans;
 
     public void run()
     {
@@ -23,16 +24,19 @@ public class ComedyStudiosBot extends AdvancedRobot
         // search for a border to crawl to !DONE : search for the closest wall
         while(true)
         {
+            ;
             if(!nextToBorder)
             {
                 goToBorder(arenaSize);
             }
 
-            else
+            else if(count > 300)
             {
                 setTurnGunRight(turnAng);
             }
-
+            else setTurnGunRight(1);
+            count++;
+            this.out.println(count);
             execute();
         }
         // position yourself paralel to the border !Done
@@ -63,13 +67,31 @@ public class ComedyStudiosBot extends AdvancedRobot
         turnRight(90);
         waitFor(new TurnCompleteCondition(this));
         nextToBorder = true;
+        count = 300;
     }
 
 
     public void onScannedRobot(ScannedRobotEvent event)
     {
+        count = 0;
         if(nextToBorder)
         {
+            //TODO: fixt retarded shaky gun movement
+
+            //turn gun to enemy Bot;
+            var position = new Point2D.Double(getX(), getY());
+            var enemyPosition = GetEnemyPosition(event);
+            var absoluteBearing = absoluteBearing(position.x, position.y, enemyPosition.x, enemyPosition.y);
+            setTurnGunRight(absoluteBearing - getGunHeading());
+
+            // fire
+            if(this.getEnergy() > 50)
+            {
+                fire(Math.max(400/event.getDistance(), 1));
+            }
+            else
+                fire(1);
+
             this.out.println("robot detected");
             //shoot and avoid enemy bot;
 
@@ -85,7 +107,7 @@ public class ComedyStudiosBot extends AdvancedRobot
             if(event.getName() == enemyName && 1<=healthDiference && healthDiference <=3)
             {
                 var moveDistance = Math.random()*100-200;
-                //ahead(moveDistance);
+                ahead(moveDistance);
                 this.enemyHealth = event.getEnergy();
                 this.out.println("the enemy has Shot");
             }
@@ -97,6 +119,22 @@ public class ComedyStudiosBot extends AdvancedRobot
         return Math.sqrt(Math.pow(target.x-getX(),2) + Math.pow(target.y-getY(),2));
     }
 
+    public void onStatus(StatusEvent e) {
+        this.robotStatus = e.getStatus();
+    }
+
+    public Point2D.Double GetEnemyPosition(ScannedRobotEvent event)
+    {
+        double angleToEnemy = event.getBearing();
+        // Calculate the angle to the scanned robot
+        double angle = Math.toRadians((robotStatus.getHeading() + angleToEnemy % 360));
+
+        // Calculate the coordinates of the robot
+        double enemyX = (robotStatus.getX() + Math.sin(angle) * event.getDistance());
+        double enemyY = (robotStatus.getY() + Math.cos(angle) * event.getDistance());
+
+        return new Point2D.Double(enemyX, enemyY);
+    }
 
     double absoluteBearing(double x1, double y1, double x2, double y2) {
         double xo = x2-x1;
