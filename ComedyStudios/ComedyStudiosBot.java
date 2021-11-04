@@ -9,6 +9,7 @@ import java.util.Random;
 
 public class ComedyStudiosBot extends AdvancedRobot
 {
+    double distance;
     Point2D.Double arenaSize;
     boolean nextToBorder;
     double turnAng = 15;
@@ -74,6 +75,7 @@ public class ComedyStudiosBot extends AdvancedRobot
 
     public void onScannedRobot(ScannedRobotEvent event)
     {
+
             standingTime ++;
             count = 0;
             if(nextToBorder)
@@ -85,7 +87,7 @@ public class ComedyStudiosBot extends AdvancedRobot
                     Random r = new Random();
                     int low = -300;
                     int high = 300;
-                    int distance  = r.nextInt(high-low) + low;
+                    distance  = r.nextInt(high-low) + low;
                     ahead(distance);
                     if(distance > 0)
                     {
@@ -96,6 +98,7 @@ public class ComedyStudiosBot extends AdvancedRobot
 
                     this.out.println(distance + " " + turnAng);
                 }
+                this.out.println("standing time"  + standingTime);
 
                 //turn gun to enemy Bot;
                 var position = new Point2D.Double(getX(), getY());
@@ -103,18 +106,21 @@ public class ComedyStudiosBot extends AdvancedRobot
                 var absoluteBearing = absoluteBearing(position.x, position.y, enemyPosition.x, enemyPosition.y);
                 setTurnGunRight(absoluteBearing - getGunHeading());
 
+                if(this.getEnergy() > 10 && event.getDistance() <= 400) {
 
-                double firepower;
-                // fire
-                if(this.getEnergy() > 50)
-                {
-                    firepower = Math.max(400/event.getDistance(), 1);
+
+                    double firepower;
+                    // fire
+                    if (this.getEnergy() > 50) {
+                        firepower = Math.max(400 / event.getDistance(), 1);
+                    } else
+                        firepower = 1;
+
+                    fire(firepower);
                 }
                 else
-                    firepower = 1;
-
-                fire(firepower);
-
+                    standingTime += 10;
+                    this.out.println("no fire");
                 //shoot and avoid enemy bot;
 
                 //if bot to close drive away
@@ -127,7 +133,19 @@ public class ComedyStudiosBot extends AdvancedRobot
         }
     }
 
+    public void onHitWall(HitWallEvent event) {
 
+            turnRight( 90);
+            waitFor( new TurnCompleteCondition(this));
+            ahead(-distance/2);
+            waitFor(new MoveCompleteCondition(this));
+    }
+
+
+    public void onHitRobot(HitRobotEvent event)
+    {
+
+    }
 
     private double getDistanceRobotPoint(Point2D.Double target) {
         return Math.sqrt(Math.pow(target.x-getX(),2) + Math.pow(target.y-getY(),2));
