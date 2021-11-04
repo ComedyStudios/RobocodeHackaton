@@ -4,6 +4,7 @@ import robocode.*;
 
 import javax.swing.text.Position;
 import java.awt.geom.Point2D;
+import java.util.Random;
 
 
 public class ComedyStudiosBot extends AdvancedRobot
@@ -12,11 +13,12 @@ public class ComedyStudiosBot extends AdvancedRobot
     boolean nextToBorder;
     double turnAng = 15;
     String enemyName;
-    double enemyHealth;
+    double enemyHealth = -1;
     int count;
     RobotStatus robotStatus;
     int lastRoundWithScans;
 
+    int standingTime;
     public void run()
     {
         arenaSize = new Point2D.Double(getBattleFieldWidth(), getBattleFieldWidth());
@@ -24,19 +26,17 @@ public class ComedyStudiosBot extends AdvancedRobot
         // search for a border to crawl to !DONE : search for the closest wall
         while(true)
         {
-            ;
             if(!nextToBorder)
             {
                 goToBorder(arenaSize);
             }
 
-            else if(count > 300)
+            else if(count > 10)
             {
                 setTurnGunRight(turnAng);
             }
-            else setTurnGunRight(1);
+            else setTurnGunRight(turnAng/10);
             count++;
-            this.out.println(count);
             execute();
         }
         // position yourself paralel to the border !Done
@@ -71,49 +71,63 @@ public class ComedyStudiosBot extends AdvancedRobot
     }
 
 
+
     public void onScannedRobot(ScannedRobotEvent event)
     {
-        count = 0;
-        if(nextToBorder)
-        {
-            //TODO: fixt retarded shaky gun movement
-
-            //turn gun to enemy Bot;
-            var position = new Point2D.Double(getX(), getY());
-            var enemyPosition = GetEnemyPosition(event);
-            var absoluteBearing = absoluteBearing(position.x, position.y, enemyPosition.x, enemyPosition.y);
-            setTurnGunRight(absoluteBearing - getGunHeading());
-
-            // fire
-            if(this.getEnergy() > 50)
+            standingTime ++;
+            count = 0;
+            if(nextToBorder)
             {
-                fire(Math.max(400/event.getDistance(), 1));
-            }
-            else
-                fire(1);
+                if(standingTime > 30)
+                {
+                    standingTime = 0;
 
-            this.out.println("robot detected");
-            //shoot and avoid enemy bot;
+                    Random r = new Random();
+                    int low = -300;
+                    int high = 300;
+                    int distance  = r.nextInt(high-low) + low;
+                    ahead(distance);
+                    if(distance > 0)
+                    {
+                        turnAng = 40;
+                    }
+                    else
+                        turnAng = -40;
 
-            //if bot to close drive away
+                    this.out.println(distance + " " + turnAng);
+                }
 
-            // get info about enemy
-            if(enemyHealth < 0|| event.getName() != enemyName)
-            {
-                enemyHealth = event.getEnergy();
-            }
+                //turn gun to enemy Bot;
+                var position = new Point2D.Double(getX(), getY());
+                var enemyPosition = GetEnemyPosition(event);
+                var absoluteBearing = absoluteBearing(position.x, position.y, enemyPosition.x, enemyPosition.y);
+                setTurnGunRight(absoluteBearing - getGunHeading());
 
-            var healthDiference = Math.abs(enemyHealth-event.getEnergy());
-            if(event.getName() == enemyName && 1<=healthDiference && healthDiference <=3)
-            {
-                var moveDistance = Math.random()*100-200;
-                ahead(moveDistance);
-                this.enemyHealth = event.getEnergy();
-                this.out.println("the enemy has Shot");
-            }
-            //if enemy shoots avoid and shoot back;
+
+                double firepower;
+                // fire
+                if(this.getEnergy() > 50)
+                {
+                    firepower = Math.max(400/event.getDistance(), 1);
+                }
+                else
+                    firepower = 1;
+
+                fire(firepower);
+
+                //shoot and avoid enemy bot;
+
+                //if bot to close drive away
+
+
+
+                // get info about enemy
+
+                //if enemy shoots avoid and shoot back;
         }
     }
+
+
 
     private double getDistanceRobotPoint(Point2D.Double target) {
         return Math.sqrt(Math.pow(target.x-getX(),2) + Math.pow(target.y-getY(),2));
